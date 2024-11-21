@@ -1,6 +1,14 @@
 import os
 import sys
+
+import docx
 from playsound import playsound
+
+import shutil
+from docx import Document
+# from docx2pdf import convert
+from spire.doc import *
+from spire.doc.common import *
 
 import errorWindow
 import helpWindow
@@ -47,12 +55,40 @@ class MainWidget(QDialog):
         # elif file == 'Документ не выбран':
         elif self.index_file == '00-000':
             self.open_error_window('Пожалуйста, выберите\nдокумент')
+
         else:
             folder = self.create_folder(task)
+            file_name = f'{file}.{self.comboFormatBox.currentText()}'
 
-            file_name = f'{task}.{format}'
-            with open(f'{folder}\\{file_name}', 'w') as file:
-                file.write('Test text.')
+            if self.comboFormatBox.currentText() == 'pdf':
+                docx_file = Document()
+                docx_file.LoadFromFile(f'Documents\\{self.index_file}.docx')
+
+                parameter = ToPdfParameterList()
+                parameter.DisableLink = True
+                parameter.IsEmbeddedAllFonts = True
+
+                docx_file.SaveToFile(f'{folder}\\{tables.ALL_DOCUMENTS[self.index_file]}.pdf', parameter)
+                docx_file.Close()
+
+            elif self.comboFormatBox.currentText() == 'docx':
+                docx_file = f'Documents\\{self.index_file}.docx'
+                copy_file = folder + '\\' + f'{self.index_file}.docx'
+                new_file = folder + '\\' + f'{tables.ALL_DOCUMENTS[self.index_file]}.docx'
+
+                shutil.copy(docx_file, copy_file)
+                os.rename(copy_file, new_file)
+
+            elif self.comboFormatBox.currentText() == 'txt':
+                docx_file = docx.Document(f'Documents\\{self.index_file}.docx')
+                new_file = open(f'{folder}\\{file_name}', 'w')
+
+                for paragraph in docx_file.paragraphs:
+                    new_file.write(paragraph.text)
+                new_file.close()
+
+            self.index_file = '00-000'
+            self.documentName.setPlainText(tables.ALL_DOCUMENTS[self.index_file])
 
     def create_folder(self, task):
         main_folder = r'C:\Users\Admin\Desktop\DocumentsPy'
@@ -67,35 +103,46 @@ class MainWidget(QDialog):
 
     # открытие окна для выбора документа
     def choice_file(self):
-        print(self.index_file)
         text_buttons = None
         index_buttons = None
 
+        # проверка входных значений пользователя
+        if self.comboTasksBox.currentText() == 'не выбранно':
+            self.open_error_window('Пожалуйста, выберите\nсферу')
+            return
+        elif self.comboFormatBox.currentText() == 'не выбранно':
+            self.open_error_window('Пожалуйста, выберите\nформат')
+            return
+
         # установка характеристик для объектов
         if self.comboTasksBox.currentText() == 'Юрист':
-            pass
+            text_buttons = ['Договор на \nоказание \nюридических \nуслуг',
+                            'Доверенность \nна представление \nинтересов \nфизического лица в \nсудебных органах']
+            index_buttons = ['01-001', '01-002']
         elif self.comboTasksBox.currentText() == 'Педагог':
             text_buttons = ['Договор об \nоказании платных \nобразовательных \nуслуг',
                             'Договор оказания \nобразовательных \nуслуг по программе \nповышения \nквалификации']
             index_buttons = ['02-001', '02-002']
         elif self.comboTasksBox.currentText() == 'Бугалтер':
-            pass
+            text_buttons = ['Договор на \nоказание \nбугалтерских \nуслуг',
+                            'Договор на \nоказание услуг по \nведению \nбугалтерского \nсчёта']
+            index_buttons = ['03-001', '03-002']
         elif self.comboTasksBox.currentText() == 'Другое':
-            pass
-        else:
+            text_buttons = ['Договор \nкупли-продажи \nнедвижимости',
+                            'Договор \nкупли-продажи \nтранспортного \nсредства']
+            index_buttons = ['04-001', '04-002']
+        elif self.comboTasksBox.currentText() == 'не выбранно':
             self.open_error_window('Пожалуйста, выберите\nсферу')
             return
 
         # создание и открытие окна
         choice_window = choiceWindow.ChoiceWidget(text_buttons, index_buttons)
         choice_window.exec()
+        self.update_document(choice_window.index)
+
 
     def update_document(self, new_index):
         self.index_file = new_index
-        # изменения вроде применяются, но
-        # при выходе из метода возвращаются назад
-        print(self.index_file)
-
         self.documentName.setPlainText(tables.ALL_DOCUMENTS[self.index_file])
 
     def open_error_window(self, name_error):

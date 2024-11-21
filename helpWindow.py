@@ -12,11 +12,15 @@ class HelpWidget(QDialog):
 
     def send_message(self):
         user_message = self.userTextEdit.toPlainText()
-        smtpObj = smtplib.SMTP('smtp.gmail.com', 587)
-        smtpObj.ehlo()
-        smtpObj.starttls()
-        smtpObj.ehlo()
-        smtpObj.login('fileprojectemail@gmail.com', '#File_work758')
-        smtpObj.sendmail("fileprojectemail@gmail.com",
-                         "frolovroman20008@gmail.com", user_message)
-        smtpObj.quit()
+        message = f'''Subject: FilePY Предложка\n
+                                {user_message}'''
+        message = message.encode('utf-8')
+
+        smtp = smtplib.SMTP('smtp.gmail.com', 587)
+        smtp.starttls()
+        smtp.login('fileprojectemail@gmail.com', 'rbax ymlc miso zlic')
+
+        smtp.sendmail('fileprojectemail@gmail.com', 'frolovroman20008@gmail.com', message)
+        smtp.quit()
+
+
