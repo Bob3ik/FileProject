@@ -23,4 +23,5 @@ class HelpWidget(QDialog):
         smtp.sendmail('fileprojectemail@gmail.com', 'frolovroman20008@gmail.com', message)
         smtp.quit()
 
+        self.userTextEdit.setText('Сообщение отправленно')
 
