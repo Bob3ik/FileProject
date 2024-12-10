@@ -2,6 +2,7 @@ from PyQt6 import uic
 from PyQt6.QtWidgets import QApplication, QMainWindow, QDialog
 
 
+# окно для выбора файла
 class ChoiceWidget(QDialog):
     def __init__(self, text_buttons, index_buttons):
         super().__init__()

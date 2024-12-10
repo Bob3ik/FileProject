@@ -16,6 +16,8 @@ import choiceWindow
 import sounds
 import tables
 
+import sqlite3
+
 from PyQt6 import uic
 from PyQt6.QtWidgets import QApplication, QDialog
 
@@ -23,6 +25,7 @@ from PyQt6.QtWidgets import QApplication, QDialog
 # создание основного рабочего окна программы
 class MainWidget(QDialog):
     def __init__(self):
+        # инициализация значений
         super().__init__()
         uic.loadUi('mainWindow.ui', self)
 
@@ -40,12 +43,15 @@ class MainWidget(QDialog):
         self.index_file = '00-000'
         self.documentName.setPlainText(tables.ALL_DOCUMENTS[self.index_file])
 
+    # создание сайта
     def create_file(self):
+        # получаем введённые пользователи значения из интерфейса
         no_choice = 'не выбранно'
         task = self.comboTasksBox.currentText()
         format = self.comboFormatBox.currentText()
         file = self.documentName.toPlainText()
 
+        # проверяем, что все данные введены
         if task == no_choice:
             # playsound(sounds.common_path + sounds.sound_error_window)
             self.open_error_window('Пожалуйста, выберите\nсферу')
@@ -56,10 +62,15 @@ class MainWidget(QDialog):
         elif self.index_file == '00-000':
             self.open_error_window('Пожалуйста, выберите\nдокумент')
 
+        # создаём файл
         else:
             folder = self.create_folder(task)
             file_name = f'{file}.{self.comboFormatBox.currentText()}'
 
+            new_text = self.get_text(self.index_file)
+            new_index = self.get_key(tables.ALL_DOCUMENTS, new_text)
+
+            # код для конверции файла в разные форматы
             if self.comboFormatBox.currentText() == 'pdf':
                 docx_file = Document()
                 docx_file.LoadFromFile(f'Documents\\{self.index_file}.docx')
@@ -87,9 +98,26 @@ class MainWidget(QDialog):
                     new_file.write(paragraph.text)
                 new_file.close()
 
+            # сбрасываем значения
             self.index_file = '00-000'
+            print(new_index)
             self.documentName.setPlainText(tables.ALL_DOCUMENTS[self.index_file])
 
+    # получаем значение из базы данных
+    def get_text(self, code):
+        db = sqlite3.connect('data.db')
+        cur = db.cursor()
+        cur.execute(f'SELECT text FROM documents WHERE code = "{code}"')
+        text = cur.fetchone()
+        return text
+
+    # получаем ключ словаря через значен ие ключа
+    def get_key(self, d, value):
+        for k, v in d.items():
+            if v == value:
+                return k
+
+    # создание папки
     def create_folder(self, task):
         main_folder = r'C:\Users\Admin\Desktop\DocumentsPy'
         task_folder = main_folder + '\\' + task
@@ -140,20 +168,23 @@ class MainWidget(QDialog):
         choice_window.exec()
         self.update_document(choice_window.index)
 
-
+    # обновляем значение выбранного файла
     def update_document(self, new_index):
         self.index_file = new_index
         self.documentName.setPlainText(tables.ALL_DOCUMENTS[self.index_file])
 
+    # вызов окна с ошибкой
     def open_error_window(self, name_error):
         error_window = errorWindow.ErrorWidget(name_error)
         error_window.exec()
 
+    # открытие окна помощи
     def open_help_window(self):
         help_window = helpWindow.HelpWidget()
         help_window.exec()
 
 
+# запуск программы
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     ex = MainWidget()

@@ -3,6 +3,7 @@ from PyQt6 import uic
 from PyQt6.QtWidgets import QDialog
 
 
+# вспомогательное окно
 class HelpWidget(QDialog):
     def __init__(self):
         super().__init__()

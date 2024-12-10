@@ -2,6 +2,7 @@ from PyQt6 import uic
 from PyQt6.QtWidgets import QDialog
 
 
+# окно ошибки
 class ErrorWidget(QDialog):
     def __init__(self, name_error):
         super().__init__()
